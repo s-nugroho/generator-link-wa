@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https:; script-src 'unsafe-inline' 'self'; style-src 'unsafe-inline' 'self'; base-uri 'self'">
 <title>Generator Link WA Undangan</title>
 <style>
   :root{
@@ -340,7 +339,7 @@ Kami yang berbahagia,
     <div class="card-body">
       <label for="contacts">Daftar Tamu</label>
       <textarea id="contacts" placeholder="Satu baris per tamu, format: Nama, Nomor WA&#10;Contoh:&#10;Budi Santoso, 081234567890&#10;Dr. Siti Aminah, S.T., M.M., +6281298765432"></textarea>
-      <div class="hint">Satu baris per tamu: <code>Nama, Nomor WA</code>. Nomor diambil dari bagian paling belakang, jadi nama boleh panjang &amp; ada gelar dengan koma (misal "Dr. Budi Santoso, S.T., M.M., 081234567890"). Nomor boleh diawali 0 atau +62, otomatis dirapikan.</div>
+      <div class="hint">Satu baris per tamu: <code>Nama, Nomor WA</code>. Nomor diambil dari bagian paling belakang, jadi nama boleh panjang &amp; ada gelar dengan koma (misal "Dr. Budi Santoso, S.T., M.M., 081234567890"). Nomor boleh diawali 0 atau +62, otomatis dirapikan.<br><br>Kalau env var <code>GUEST_LIST</code> diisi di Vercel, daftar ini otomatis keisi saat halaman dibuka — tapi boleh langsung ditambah/edit manual di sini tanpa perlu redeploy, cukup untuk sesi ini saja.</div>
     </div>
   </details>
 
@@ -408,8 +407,10 @@ async function loadConfigFromEnv(){
     if(cfg.hariTanggal) document.getElementById('haritanggal').value = cfg.hariTanggal;
     if(cfg.lokasi) document.getElementById('lokasi').value = cfg.lokasi;
     if(cfg.waktu) document.getElementById('waktu').value = cfg.waktu;
+    if(cfg.guestList) document.getElementById('contacts').value = cfg.guestList;
     document.getElementById('baseurl-preview').textContent = document.getElementById('baseurl').value || 'Belum diisi';
     updateMempelaiPreview();
+    updateContactsPreview();
   }catch(e){
     // /api/config belum ada (misal jalan dari file lokal) — form tetap kosong, isi manual seperti biasa.
   }
@@ -429,7 +430,7 @@ function isValidPhone(p){
 }
 
 function generateLinks(){
-  const baseUrl = validateUrl(document.getElementById('baseurl').value.trim());
+  const baseUrl = document.getElementById('baseurl').value.trim();
   const template = templateEl.value;
   const rawContacts = document.getElementById('contacts').value;
   const resultsEl = document.getElementById('results');
@@ -513,14 +514,6 @@ function generateLinks(){
   const summary = `<div class="summary">${successCount} dari ${lines.length} tamu siap dikirim. Klik "Kirim WA" satu per satu, WhatsApp akan terbuka dengan pesan sudah terisi.</div>`;
   resultsEl.innerHTML = summary + html;
   resultsEl.scrollIntoView({behavior:'smooth', block:'start'});
-}
-
-function validateUrl(str){
-  try {
-    const u = new URL(str);
-    if (!['http:','https:'].includes(u.protocol)) return '';
-    return str;
-  } catch{ return ''; }
 }
 
 function escapeHtml(str){
