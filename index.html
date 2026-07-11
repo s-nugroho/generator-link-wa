@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generator Link WA Undangan</title>
+<style>
+  :root{
+    --cream:#fbf7f0;
+    --ink:#2b241c;
+    --gold:#a8823a;
+    --gold-dark:#7a5c22;
+    --line:#e4dbc9;
+    --green:#3fae4a;
+    --green-dark:#2f8c39;
+    --panel:#ffffff;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--cream);
+    color:var(--ink);
+    font-family:'Georgia', 'Times New Roman', serif;
+    padding:32px 16px 80px;
+  }
+  .wrap{max-width:760px;margin:0 auto;}
+  header{
+    text-align:center;
+    margin-bottom:32px;
+    padding-bottom:24px;
+    border-bottom:1px solid var(--line);
+  }
+  header .eyebrow{
+    font-family:'Helvetica Neue',Arial,sans-serif;
+    font-size:11px;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:var(--gold-dark);
+    margin-bottom:8px;
+  }
+  header h1{
+    font-size:28px;
+    margin:0 0 6px;
+    font-weight:400;
+    letter-spacing:.01em;
+  }
+  header p{
+    font-family:'Helvetica Neue',Arial,sans-serif;
+    font-size:13px;
+    color:#6b6152;
+    margin:0;
+  }
+  .card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:24px;
+    margin-bottom:20px;
+  }
+  details.card{
+    padding:0;
+    overflow:hidden;
+  }
+  details.card > summary{
+    list-style:none;
+    cursor:pointer;
+    padding:18px 24px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    font-family:'Helvetica Neue',Arial,sans-serif;
+    -webkit-tap-highlight-color:transparent;
+  }
+  details.card > summary::-webkit-details-marker{display:none;}
+  details.card > summary .summary-title{
+    font-size:11px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--gold-dark);
+  }
+  details.card > summary .summary-sub{
+    font-family:'Georgia', 'Times New Roman', serif;
+    font-size:13px;
+    color:#8a8070;
+    margin-top:2px;
+  }
+  details.card > summary .chevron{
+    flex-shrink:0;
+    width:18px;
+    height:18px;
+    color:var(--gold-dark);
+    transition:transform .2s ease;
+  }
+  details.card[open] > summary .chevron{transform:rotate(180deg);}
+  details.card .card-body{
+    padding:0 24px 24px;
+    border-top:1px solid var(--line);
+    padding-top:20px;
+  }
+  details.card[open] > summary{
+    border-bottom:1px solid transparent;
+  }
+  label{
+    display:block;
+    font-family:'Helvetica Neue',Arial,sans-serif;
+    font-size:11px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--gold-dark);
+    margin-bottom:8px;
+  }
+  .hint{
+    font-family:'Helvetica Neue',Arial,sans-serif;
+    font-size:12px;
+    color:#8a8070;
+    margin-top:6px;
+    line-height:1.5;
+  }
+  input[type=text], input[type=url], textarea{
+    width:100%;
+    font-family:'Helvetica Neue',Arial,sans-serif;
+    font-size:14px;
+    padding:10px 12px;
+    border:1px solid var(--line);
+    border-radius:3px;
+    background:#fffdf9;
+    color:var(--ink);
+  }
+  textarea{
+    resize:vertical;
+    line-height:1.6;
+  }
+  #template{min-height:160px;}
+  #contacts{min-height:110px;}
+  .row-gap{margin-bottom:18px;}
+  .charcount{
+    font-family:'Helvetica Neue',Arial,sans-serif;
+    font-size:11px;
+    color:#a89a7d;
+    text-align:right;
+    margin-top:4px;
+  }
+  .charcount.warn{color:#b34a3c;}
+  button.generate{
+    width:100%;
+    padding:14px;
+    background:var(--gold-dark);
+    color:#fff;
+    border:none;
+    border-radius:3px;
+    font-family:'Helvetica Neue',Arial,sans-serif;
+    font-size:13px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    cursor:pointer;
+    transition:background .15s ease;
+  }
+  button.generate:hover{background:#5f4519;}
+  #results{margin-top:8px;}
+  .result-item{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:14px 16px;
+    margin-bottom:10px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+  .result-item .info{flex:1;min-width:180px;}
+  .result-item .name{
+    font-size:15px;
+    margin-bottom:2px;
+  }
+  .result-item .phone{
+    font-family:'Helvetica Neue',Arial,sans-serif;
+    font-size:12px;
+    color:#8a8070;
+  }
+  .result-item a.send{
+    font-family:'Helvetica Neue',Arial,sans-serif;
+    font-size:12px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    background:var(--green);
+    color:#fff;
+    text-decoration:none;
+    padding:9px 16px;
+    border-radius:3px;
+    white-space:nowrap;
+    transition:background .15s ease;
+  }
+  .result-item a.send:hover{background:var(--green-dark);}
+  .error-item{
+    font-family:'Helvetica Neue',Arial,sans-serif;
+    font-size:12px;
+    color:#b34a3c;
+    background:#fdf1ef;
+    border:1px solid #f0c9c2;
+    border-radius:3px;
+    padding:8px 12px;
+    margin-bottom:8px;
+  }
+  .empty-state{
+    font-family:'Helvetica Neue',Arial,sans-serif;
+    font-size:13px;
+    color:#a89a7d;
+    text-align:center;
+    padding:24px;
+  }
+  .summary{
+    font-family:'Helvetica Neue',Arial,sans-serif;
+    font-size:12px;
+    color:#8a8070;
+    margin-bottom:12px;
+  }
+  .divider-label{
+    font-family:'Helvetica Neue',Arial,sans-serif;
+    font-size:11px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--gold-dark);
+    margin:28px 0 14px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .divider-label::after{
+    content:'';
+    flex:1;
+    height:1px;
+    background:var(--line);
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Undangan Digital</div>
+    <h1>Generator Link WA Personalized</h1>
+    <p>Buat link kirim WhatsApp dengan pesan &amp; nama tamu otomatis terisi</p>
+  </header>
+
+  <details class="card">
+    <summary>
+      <div>
+        <div class="summary-title">1. Link Undangan</div>
+        <div class="summary-sub" id="baseurl-preview">https://dummy.com/</div>
+      </div>
+      <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+    </summary>
+    <div class="card-body">
+      <label for="baseurl">Link Undangan (tanpa parameter ?to=)</label>
+      <input type="url" id="baseurl" placeholder="https://dummy.com/" value="https://dummy.com/">
+      <div class="hint">Nama tamu akan otomatis ditambahkan sebagai <code>?to=Nama</code> di belakang link ini.</div>
+    </div>
+  </details>
+
+  <details class="card">
+    <summary>
+      <div>
+        <div class="summary-title">2. Info Mempelai &amp; Acara</div>
+        <div class="summary-sub" id="mempelai-preview">Belum diisi</div>
+      </div>
+      <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+    </summary>
+    <div class="card-body">
+      <label for="mempelai1">Nama Mempelai 1</label>
+      <input type="text" id="mempelai1" placeholder="Latifah" class="row-gap" value="">
+      <label for="mempelai2">Nama Mempelai 2</label>
+      <input type="text" id="mempelai2" placeholder="Seftian" class="row-gap" value="">
+      <label for="panggilan1">Nama Panggilan Mempelai 1</label>
+      <input type="text" id="panggilan1" placeholder="Latifah" class="row-gap" value="">
+      <label for="panggilan2">Nama Panggilan Mempelai 2</label>
+      <input type="text" id="panggilan2" placeholder="Seftian" class="row-gap" value="">
+      <label for="haritanggal">Hari / Tanggal</label>
+      <input type="text" id="haritanggal" placeholder="Minggu, 19 Juli 2026" class="row-gap" value="">
+      <label for="lokasi">Tempat</label>
+      <input type="text" id="lokasi" placeholder="Gedung Serbaguna, Jl. Contoh No. 1, Yogyakarta" class="row-gap" value="">
+      <label for="waktu">Waktu</label>
+      <input type="text" id="waktu" placeholder="09.00 WIB - selesai" value="">
+      <div class="hint">Ketujuh info ini sama untuk semua tamu, otomatis disisipkan ke template menggantikan {nama_mempelai_1}, {nama_mempelai_2}, {nama_panggilan_mempelai_1}, {nama_panggilan_mempelai_2}, {hari_tanggal}, {lokasi_acara}, {waktu}.</div>
+    </div>
+  </details>
+
+  <details class="card">
+    <summary>
+      <div>
+        <div class="summary-title">3. Template Pesan</div>
+        <div class="summary-sub" id="template-preview">0 karakter</div>
+      </div>
+      <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+    </summary>
+    <div class="card-body">
+      <label for="template">Template Pesan</label>
+      <textarea id="template">Kepada Yth.
+Bapak/Ibu/Saudara/i
+{nama}
+di tempat
+
+Assalamu'alaikum warahmatullahi wabarakatuh.
+
+Dengan hormat, perkenankan kami mengundang Bapak/Ibu/Saudara/i untuk hadir pada acara pernikahan kami:
+{nama_mempelai_1} & {nama_mempelai_2}
+
+InsyaAllah akan dilaksanakan pada:
+Hari/Tanggal: {hari_tanggal}
+Tempat: {lokasi_acara}
+Waktu: {waktu}
+
+Informasi lebih lengkap dapat dilihat pada tautan undangan berikut:
+{link}
+
+Merupakan kebahagiaan bagi kami apabila Bapak/Ibu/Saudara/i berkenan hadir dan memberikan doa restu.
+
+Mohon maaf, undangan kami sampaikan melalui pesan ini. Terima kasih atas perhatian dan doanya.
+
+Wassalamualaikum warahmatullahi wabarakatuh.
+
+Kami yang berbahagia,
+{nama_panggilan_mempelai_1} & {nama_panggilan_mempelai_2}</textarea>
+      <div class="hint">Placeholder tersedia: <code>{nama}</code>, <code>{link}</code> (wajib), serta <code>{nama_mempelai_1}</code>, <code>{nama_mempelai_2}</code>, <code>{nama_panggilan_mempelai_1}</code>, <code>{nama_panggilan_mempelai_2}</code>, <code>{hari_tanggal}</code>, <code>{lokasi_acara}</code>, <code>{waktu}</code> (opsional, diisi dari form di atas). Titik dua sengaja ditempel langsung ke label (bukan pakai tab/spasi banyak) karena WA pakai font proporsional — perataan pakai tab/spasi jadi berantakan di layar HP.</div>
+      <div class="charcount" id="charcount">0 karakter</div>
+    </div>
+  </details>
+
+  <details class="card" open>
+    <summary>
+      <div>
+        <div class="summary-title">4. Daftar Tamu</div>
+        <div class="summary-sub" id="contacts-preview">0 tamu</div>
+      </div>
+      <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+    </summary>
+    <div class="card-body">
+      <label for="contacts">Daftar Tamu</label>
+      <textarea id="contacts" placeholder="Satu baris per tamu, format: Nama, Nomor WA&#10;Contoh:&#10;Budi Santoso, 081234567890&#10;Dr. Siti Aminah, S.T., M.M., +6281298765432"></textarea>
+      <div class="hint">Satu baris per tamu: <code>Nama, Nomor WA</code>. Nomor diambil dari bagian paling belakang, jadi nama boleh panjang &amp; ada gelar dengan koma (misal "Dr. Budi Santoso, S.T., M.M., 081234567890"). Nomor boleh diawali 0 atau +62, otomatis dirapikan.</div>
+    </div>
+  </details>
+
+  <button class="generate" onclick="generateLinks()">Buat Link</button>
+
+  <div class="divider-label">Hasil</div>
+  <div id="results">
+    <div class="empty-state">Isi form di atas lalu klik "Buat Link"</div>
+  </div>
+
+</div>
+
+<script>
+const templateEl = document.getElementById('template');
+const charcountEl = document.getElementById('charcount');
+
+function updateCharCount(){
+  const len = templateEl.value.length;
+  charcountEl.textContent = len + ' karakter (template, sebelum nama/link disisipkan)';
+  charcountEl.classList.toggle('warn', len > 700);
+  document.getElementById('template-preview').textContent = len + ' karakter';
+}
+templateEl.addEventListener('input', updateCharCount);
+updateCharCount();
+
+document.getElementById('baseurl').addEventListener('input', function(){
+  document.getElementById('baseurl-preview').textContent = this.value.trim() || 'Belum diisi';
+});
+
+function updateMempelaiPreview(){
+  const m1 = document.getElementById('mempelai1').value.trim();
+  const m2 = document.getElementById('mempelai2').value.trim();
+  const tgl = document.getElementById('haritanggal').value.trim();
+  const preview = document.getElementById('mempelai-preview');
+  if(!m1 && !m2){
+    preview.textContent = 'Belum diisi';
+  } else {
+    preview.textContent = [m1, m2].filter(Boolean).join(' & ') + (tgl ? ' · ' + tgl : '');
+  }
+}
+['mempelai1','mempelai2','panggilan1','panggilan2','haritanggal','lokasi','waktu'].forEach(id => {
+  document.getElementById(id).addEventListener('input', updateMempelaiPreview);
+});
+updateMempelaiPreview();
+
+function updateContactsPreview(){
+  const lines = document.getElementById('contacts').value.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+  document.getElementById('contacts-preview').textContent = lines.length + ' tamu';
+}
+document.getElementById('contacts').addEventListener('input', updateContactsPreview);
+updateContactsPreview();
+
+function normalizePhone(raw){
+  let p = raw.trim().replace(/[\s\-\(\)]/g, '');
+  if(p.startsWith('+')) p = p.slice(1);
+  if(p.startsWith('0')) p = '62' + p.slice(1);
+  if(p.startsWith('8')) p = '62' + p; // jaga-jaga kalau ketik tanpa 0/62
+  return p;
+}
+
+function isValidPhone(p){
+  return /^62\d{8,13}$/.test(p);
+}
+
+function generateLinks(){
+  const baseUrl = document.getElementById('baseurl').value.trim();
+  const template = templateEl.value;
+  const rawContacts = document.getElementById('contacts').value;
+  const resultsEl = document.getElementById('results');
+  resultsEl.innerHTML = '';
+
+  const mempelai1 = document.getElementById('mempelai1').value.trim();
+  const mempelai2 = document.getElementById('mempelai2').value.trim();
+  const panggilan1 = document.getElementById('panggilan1').value.trim();
+  const panggilan2 = document.getElementById('panggilan2').value.trim();
+  const haritanggal = document.getElementById('haritanggal').value.trim();
+  const lokasi = document.getElementById('lokasi').value.trim();
+  const waktu = document.getElementById('waktu').value.trim();
+
+  if(!baseUrl){
+    resultsEl.innerHTML = '<div class="error-item">Isi dulu link undangannya.</div>';
+    return;
+  }
+  if(!template.includes('{nama}') || !template.includes('{link}')){
+    resultsEl.innerHTML = '<div class="error-item">Template harus mengandung {nama} dan {link}.</div>';
+    return;
+  }
+
+  const lines = rawContacts.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+  if(lines.length === 0){
+    resultsEl.innerHTML = '<div class="error-item">Isi dulu daftar tamu (Nama, Nomor).</div>';
+    return;
+  }
+
+  let successCount = 0;
+  let html = '';
+
+  lines.forEach(line => {
+    const parts = line.split(',');
+    if(parts.length < 2){
+      html += `<div class="error-item">Baris dilewati (format salah, butuh "Nama, Nomor"): "${escapeHtml(line)}"</div>`;
+      return;
+    }
+    // Nomor WA diambil dari bagian PALING BELAKANG (setelah koma terakhir),
+    // sisanya digabung jadi nama — biar nama dengan gelar (Dr. Budi, S.T., M.M.) tetap utuh.
+    const phoneRaw = parts[parts.length - 1].trim();
+    const name = parts.slice(0, -1).join(',').trim();
+    const phone = normalizePhone(phoneRaw);
+
+    if(!name){
+      html += `<div class="error-item">Baris dilewati (nama kosong): "${escapeHtml(line)}"</div>`;
+      return;
+    }
+    if(!isValidPhone(phone)){
+      html += `<div class="error-item">Baris dilewati (nomor tidak valid): "${escapeHtml(line)}"</div>`;
+      return;
+    }
+
+    const separator = baseUrl.includes('?') ? '&' : '?';
+    const personalizedLink = baseUrl + separator + 'to=' + encodeURIComponent(name).replace(/%20/g, '+');
+
+    let message = template
+      .split('{nama}').join(name)
+      .split('{link}').join(personalizedLink)
+      .split('{nama_mempelai_1}').join(mempelai1)
+      .split('{nama_mempelai_2}').join(mempelai2)
+      .split('{nama_panggilan_mempelai_1}').join(panggilan1)
+      .split('{nama_panggilan_mempelai_2}').join(panggilan2)
+      .split('{hari_tanggal}').join(haritanggal)
+      .split('{lokasi_acara}').join(lokasi)
+      .split('{waktu}').join(waktu);
+
+    const waLink = 'https://wa.me/' + phone + '?text=' + encodeURIComponent(message);
+
+    html += `
+      <div class="result-item">
+        <div class="info">
+          <div class="name">${escapeHtml(name)}</div>
+          <div class="phone">+${phone} &middot; ${message.length} karakter</div>
+        </div>
+        <a class="send" href="${waLink}" target="_blank" rel="noopener">Kirim WA</a>
+      </div>
+    `;
+    successCount++;
+  });
+
+  const summary = `<div class="summary">${successCount} dari ${lines.length} tamu siap dikirim. Klik "Kirim WA" satu per satu, WhatsApp akan terbuka dengan pesan sudah terisi.</div>`;
+  resultsEl.innerHTML = summary + html;
+  resultsEl.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+</script>
+
+</body>
+</html>
