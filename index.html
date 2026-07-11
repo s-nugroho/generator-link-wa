@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https:; script-src 'unsafe-inline' 'self'; style-src 'unsafe-inline' 'self'; base-uri 'self'">
 <title>Generator Link WA Undangan</title>
 <style>
   :root{
@@ -392,6 +393,29 @@ function updateContactsPreview(){
 document.getElementById('contacts').addEventListener('input', updateContactsPreview);
 updateContactsPreview();
 
+// Ambil nilai default dari /api/config (dibaca dari Environment Variables di Vercel),
+// biar field bisa diganti tanpa edit kode, cukup ubah env var di dashboard Vercel.
+async function loadConfigFromEnv(){
+  try{
+    const res = await fetch('/api/config');
+    if(!res.ok) return;
+    const cfg = await res.json();
+    if(cfg.baseUrl) document.getElementById('baseurl').value = cfg.baseUrl;
+    if(cfg.mempelai1) document.getElementById('mempelai1').value = cfg.mempelai1;
+    if(cfg.mempelai2) document.getElementById('mempelai2').value = cfg.mempelai2;
+    if(cfg.panggilan1) document.getElementById('panggilan1').value = cfg.panggilan1;
+    if(cfg.panggilan2) document.getElementById('panggilan2').value = cfg.panggilan2;
+    if(cfg.hariTanggal) document.getElementById('haritanggal').value = cfg.hariTanggal;
+    if(cfg.lokasi) document.getElementById('lokasi').value = cfg.lokasi;
+    if(cfg.waktu) document.getElementById('waktu').value = cfg.waktu;
+    document.getElementById('baseurl-preview').textContent = document.getElementById('baseurl').value || 'Belum diisi';
+    updateMempelaiPreview();
+  }catch(e){
+    // /api/config belum ada (misal jalan dari file lokal) — form tetap kosong, isi manual seperti biasa.
+  }
+}
+loadConfigFromEnv();
+
 function normalizePhone(raw){
   let p = raw.trim().replace(/[\s\-\(\)]/g, '');
   if(p.startsWith('+')) p = p.slice(1);
@@ -405,7 +429,7 @@ function isValidPhone(p){
 }
 
 function generateLinks(){
-  const baseUrl = document.getElementById('baseurl').value.trim();
+  const baseUrl = validateUrl(document.getElementById('baseurl').value.trim());
   const template = templateEl.value;
   const rawContacts = document.getElementById('contacts').value;
   const resultsEl = document.getElementById('results');
@@ -489,6 +513,14 @@ function generateLinks(){
   const summary = `<div class="summary">${successCount} dari ${lines.length} tamu siap dikirim. Klik "Kirim WA" satu per satu, WhatsApp akan terbuka dengan pesan sudah terisi.</div>`;
   resultsEl.innerHTML = summary + html;
   resultsEl.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function validateUrl(str){
+  try {
+    const u = new URL(str);
+    if (!['http:','https:'].includes(u.protocol)) return '';
+    return str;
+  } catch{ return ''; }
 }
 
 function escapeHtml(str){
