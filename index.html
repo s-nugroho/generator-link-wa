@@ -480,8 +480,12 @@ function generateLinks(){
       html += `<div class="error-item">Baris dilewati (nama kosong): "${escapeHtml(line)}"</div>`;
       return;
     }
+    if(!phoneRaw || phoneRaw === '(nomor kosong)'){
+      html += `<div class="error-item">⚠️ ${escapeHtml(name)} — nomor WA belum diisi, lengkapi dulu di Sheets/daftar tamu.</div>`;
+      return;
+    }
     if(!isValidPhone(phone)){
-      html += `<div class="error-item">Baris dilewati (nomor tidak valid): "${escapeHtml(line)}"</div>`;
+      html += `<div class="error-item">⚠️ ${escapeHtml(name)} — nomor WA formatnya salah: "${escapeHtml(phoneRaw)}"</div>`;
       return;
     }
 

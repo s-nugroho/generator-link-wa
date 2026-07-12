@@ -59,7 +59,7 @@ async function fetchGuestListFromSheet(sheetUrl) {
     .map(r => {
       const nama = (r[0] || '').trim();
       const nomor = (r[1] || '').trim();
-      return nama && nomor ? `${nama}, ${nomor}` : null;
+      return nama ? `${nama}, ${nomor || '(nomor kosong)'}` : null;
     })
     .filter(Boolean)
     .join('\n');
@@ -90,7 +90,7 @@ export default async function handler(req, res) {
           .map(g => {
             const nama = g.nama || g.name || '';
             const nomor = g.nomor || g.phone || g.number || '';
-            return nama && nomor ? `${nama}, ${nomor}` : null;
+            return nama ? `${nama}, ${nomor || '(nomor kosong)'}` : null;
           })
           .filter(Boolean)
           .join('\n');
