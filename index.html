@@ -569,19 +569,22 @@ function generateLinks(){
   // yang posisinya ada di SENT_PREVIEW_LIMIT baris PALING BAWAH (dari
   // keseluruhan daftar) yang tetap tampil inline — sisanya (posisi lebih
   // ke atas) dilipat ke bagian collapse.
+  // Urutan tampilan: [collapse (sent lama)] → [sent terakhir] → [belum dikirim].
   const cutoffIndex = allItems.length - SENT_PREVIEW_LIMIT;
 
-  let mainHtml = '';
   let collapsedHtml = '';
+  let shownSentHtml = '';
+  let unsentHtml = '';
   let collapsedCount = 0;
 
   allItems.forEach((item, idx) => {
-    const shouldHide = item.sudahDikirim && idx < cutoffIndex;
-    if(shouldHide){
+    if(item.sudahDikirim && idx < cutoffIndex){
       collapsedHtml += item.html;
       collapsedCount++;
+    } else if(item.sudahDikirim){
+      shownSentHtml += item.html;
     } else {
-      mainHtml += item.html;
+      unsentHtml += item.html;
     }
   });
 
@@ -599,7 +602,7 @@ function generateLinks(){
     : '';
 
   const summary = `<div class="summary">${successCount} dari ${lines.length} tamu siap dikirim. Klik "Kirim WA" satu per satu, WhatsApp akan terbuka dengan pesan sudah terisi — otomatis ditandai "sudah dikirim" di browser ini.</div>`;
-  resultsEl.innerHTML = summary + mainHtml + collapsedSection;
+  resultsEl.innerHTML = summary + collapsedSection + shownSentHtml + unsentHtml;
   resultsEl.scrollIntoView({behavior:'smooth', block:'start'});
 
   // Pasang listener buat auto-mark "sudah dikirim" pas link WA diklik.
