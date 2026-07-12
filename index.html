@@ -418,8 +418,10 @@ async function loadConfigFromEnv(){
 loadConfigFromEnv();
 
 function normalizePhone(raw){
-  let p = raw.trim().replace(/[\s\-\(\)]/g, '');
-  if(p.startsWith('+')) p = p.slice(1);
+  // Buang semua karakter kecuali digit — ini juga nangkep karakter strip/spasi
+  // "aneh" (non-breaking hyphen, non-breaking space, dll) yang suka nyelip
+  // kalau nomor di-copy dari Word, Notion, atau situs tertentu.
+  let p = raw.trim().replace(/[^\d]/g, '');
   if(p.startsWith('0')) p = '62' + p.slice(1);
   if(p.startsWith('8')) p = '62' + p; // jaga-jaga kalau ketik tanpa 0/62
   return p;
