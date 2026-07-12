@@ -501,12 +501,13 @@ function generateLinks(){
   }
 
   let successCount = 0;
-  let html = '';
+  const SENT_PREVIEW_LIMIT = 3;
+  const allItems = []; // {html, sudahDikirim}
 
   lines.forEach(line => {
     const parts = line.split(',');
     if(parts.length < 2){
-      html += `<div class="error-item">Baris dilewati (format salah, butuh "Nama, Nomor"): "${escapeHtml(line)}"</div>`;
+      allItems.push({html: `<div class="error-item">Baris dilewati (format salah, butuh "Nama, Nomor"): "${escapeHtml(line)}"</div>`, sudahDikirim: false});
       return;
     }
     // Nomor WA diambil dari bagian PALING BELAKANG (setelah koma terakhir),
@@ -516,15 +517,15 @@ function generateLinks(){
     const phone = normalizePhone(phoneRaw);
 
     if(!name){
-      html += `<div class="error-item">Baris dilewati (nama kosong): "${escapeHtml(line)}"</div>`;
+      allItems.push({html: `<div class="error-item">Baris dilewati (nama kosong): "${escapeHtml(line)}"</div>`, sudahDikirim: false});
       return;
     }
     if(!phoneRaw || phoneRaw === '(nomor kosong)'){
-      html += `<div class="error-item">⚠️ ${escapeHtml(name)} — nomor WA belum diisi, lengkapi dulu di Sheets/daftar tamu.</div>`;
+      allItems.push({html: `<div class="error-item">⚠️ ${escapeHtml(name)} — nomor WA belum diisi, lengkapi dulu di Sheets/daftar tamu.</div>`, sudahDikirim: false});
       return;
     }
     if(!isValidPhone(phone)){
-      html += `<div class="error-item">⚠️ ${escapeHtml(name)} — nomor WA formatnya salah: "${escapeHtml(phoneRaw)}"</div>`;
+      allItems.push({html: `<div class="error-item">⚠️ ${escapeHtml(name)} — nomor WA formatnya salah: "${escapeHtml(phoneRaw)}"</div>`, sudahDikirim: false});
       return;
     }
 
@@ -550,7 +551,7 @@ function generateLinks(){
       ? `<span class="sent-badge" style="display:inline-block; font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:#2f8c39; background:#eaf7ec; border:1px solid #cdeccf; border-radius:3px; padding:2px 6px; margin-left:6px;">Sudah dikirim</span>`
       : '';
 
-    html += `
+    const itemHtml = `
       <div class="result-item" data-guest-name="${escapeHtml(name)}" style="${sudahDikirim ? 'opacity:0.6;' : ''}">
         <div class="info">
           <div class="name">${escapeHtml(name)}${sentBadge}</div>
@@ -559,11 +560,46 @@ function generateLinks(){
         <a class="send" href="${waLink}" target="_blank" rel="noopener" data-mark-name="${escapeHtml(name)}">Kirim WA</a>
       </div>
     `;
+
+    allItems.push({html: itemHtml, sudahDikirim});
     successCount++;
   });
 
+  // Tamu yang belum dikirim selalu tampil. Untuk yang sudah dikirim, cuma
+  // yang posisinya ada di SENT_PREVIEW_LIMIT baris PALING BAWAH (dari
+  // keseluruhan daftar) yang tetap tampil inline — sisanya (posisi lebih
+  // ke atas) dilipat ke bagian collapse.
+  const cutoffIndex = allItems.length - SENT_PREVIEW_LIMIT;
+
+  let mainHtml = '';
+  let collapsedHtml = '';
+  let collapsedCount = 0;
+
+  allItems.forEach((item, idx) => {
+    const shouldHide = item.sudahDikirim && idx < cutoffIndex;
+    if(shouldHide){
+      collapsedHtml += item.html;
+      collapsedCount++;
+    } else {
+      mainHtml += item.html;
+    }
+  });
+
+  const collapsedSection = collapsedCount > 0
+    ? `<details class="card" style="margin-top:4px;">
+         <summary>
+           <div>
+             <div class="summary-title">Tamu Lain Sudah Dikirim</div>
+             <div class="summary-sub">${collapsedCount} tamu lainnya, klik untuk lihat</div>
+           </div>
+           <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+         </summary>
+         <div class="card-body" style="padding-top:12px;">${collapsedHtml}</div>
+       </details>`
+    : '';
+
   const summary = `<div class="summary">${successCount} dari ${lines.length} tamu siap dikirim. Klik "Kirim WA" satu per satu, WhatsApp akan terbuka dengan pesan sudah terisi — otomatis ditandai "sudah dikirim" di browser ini.</div>`;
-  resultsEl.innerHTML = summary + html;
+  resultsEl.innerHTML = summary + mainHtml + collapsedSection;
   resultsEl.scrollIntoView({behavior:'smooth', block:'start'});
 
   // Pasang listener buat auto-mark "sudah dikirim" pas link WA diklik.
