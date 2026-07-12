@@ -48,30 +48,40 @@ async function fetchGuestListFromSheet(sheetUrl) {
   if (!res.ok) throw new Error('Gagal fetch Google Sheet: ' + res.status);
   const csvText = await res.text();
   const rows = parseCsv(csvText);
-  if (rows.length === 0) return '';
+  if (rows.length === 0) return { guestList: '', guestStatuses: {} };
 
   // Deteksi baris header: kalau kolom kedua baris pertama gak ada angka sama sekali,
-  // anggap itu header ("Nama, Nomor") dan dilewatin.
+  // anggap itu header ("Nama, Nomor, Status") dan dilewatin.
   const firstRowLooksLikeHeader = rows[0][1] && !/\d/.test(rows[0][1]);
   const dataRows = firstRowLooksLikeHeader ? rows.slice(1) : rows;
 
-  return dataRows
-    .map(r => {
-      const nama = (r[0] || '').trim();
-      const nomor = (r[1] || '').trim();
-      return nama ? `${nama}, ${nomor || '(nomor kosong)'}` : null;
-    })
-    .filter(Boolean)
-    .join('\n');
+  const guestStatuses = {};
+  const lines = [];
+
+  dataRows.forEach(r => {
+    const nama = (r[0] || '').trim();
+    const nomor = (r[1] || '').trim();
+    const statusRaw = (r[2] || '').trim().toLowerCase();
+    if (!nama) return;
+    lines.push(`${nama}, ${nomor || '(nomor kosong)'}`);
+    // Terima berbagai penanda "sudah dikirim": sudah, sent, yes, true, ✓, 1
+    const sudahDikirim = /^(sudah|sent|yes|true|✓|1|v|done)$/i.test(statusRaw);
+    if (sudahDikirim) guestStatuses[nama] = true;
+  });
+
+  return { guestList: lines.join('\n'), guestStatuses };
 }
 
 export default async function handler(req, res) {
   let guestList = '';
+  let guestStatuses = {};
 
   const sheetUrl = process.env.GUEST_LIST_SHEET_URL;
   if (sheetUrl) {
     try {
-      guestList = await fetchGuestListFromSheet(sheetUrl);
+      const result = await fetchGuestListFromSheet(sheetUrl);
+      guestList = result.guestList;
+      guestStatuses = result.guestStatuses;
     } catch (e) {
       // Sheet gagal diambil (link salah/private/koneksi) — fallback ke GUEST_LIST kalau ada.
       guestList = '';
@@ -79,7 +89,7 @@ export default async function handler(req, res) {
   }
 
   // Fallback / opsi manual: env var GUEST_LIST (plain text atau JSON), dipakai kalau
-  // GUEST_LIST_SHEET_URL kosong atau gagal fetch.
+  // GUEST_LIST_SHEET_URL kosong atau gagal fetch. (Fallback ini gak dukung kolom Status.)
   if (!guestList) {
     const rawGuestList = process.env.GUEST_LIST || '';
     const trimmed = rawGuestList.trim();
@@ -90,6 +100,7 @@ export default async function handler(req, res) {
           .map(g => {
             const nama = g.nama || g.name || '';
             const nomor = g.nomor || g.phone || g.number || '';
+            if (nama && (g.sudah || g.sent || g.status)) guestStatuses[nama] = true;
             return nama ? `${nama}, ${nomor || '(nomor kosong)'}` : null;
           })
           .filter(Boolean)
@@ -112,5 +123,6 @@ export default async function handler(req, res) {
     lokasi: process.env.LOKASI_ACARA || '',
     waktu: process.env.WAKTU_ACARA || '',
     guestList,
+    guestStatuses,
   });
 }
